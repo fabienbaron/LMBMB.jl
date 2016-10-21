@@ -67,7 +67,7 @@ Integer parameters in the int array of length 7
                                    additional bundle is needed, NA may be set to zero).
                                    If IPAR(I) <= 0 the default value of the parameter will be used.
 """
-function lmbmb(optFun::Function,x::Array{Float64}; xl::Array{Float64}, xu::Array{Float64};na::Int=2,mcu::Int=15,printinfo::Bool=false,maxtime::Float64=1800.0)
+function lmbmb(optFun::Function,x::Array{Float64}; xl::Array{Float64}, xu::Array{Float64},na::Int=2,mcu::Int=15,printinfo::Bool=false,maxtime::Float64=1800.0)
 
   const fOptPtr = cfunction(optFun,Cdouble,(Cint,Ptr{Cdouble}, Ptr{Cdouble}))
   ccall((:set_obj_func,liblmbmb),Void,(Ptr{Void},),fOptPtr)
