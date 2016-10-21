@@ -82,7 +82,7 @@ function lmbmb(optFun::Function,x::Array{Float64};na::Int=2,mcu::Int=15,printinf
   na =convert(Cint,na);
   mcu =convert(Cint,mcu);
   mc =convert(Cint,7);
-  nw =convert(Cint,1 + 13*n + 2*n*na + 3*na + 2*n*mcu + 5*mcu*(mcu+1)/2 + 13*mcu + (2*mcu+1)*mcu));
+  nw =convert(Cint,1 + 13*n + 2*n*na + 3*na + 2*n*mcu + 5*mcu*(mcu+1)/2 + 13*mcu + (2*mcu+1)*mcu);
   w=zeros(Cdouble,nw);
   fVal=zeros(Cdouble,1);
 
@@ -95,9 +95,9 @@ function lmbmb(optFun::Function,x::Array{Float64};na::Int=2,mcu::Int=15,printinf
     @printf("%-8s %d\n", "na:", na);
     @printf("%-8s %d\n", "mcu:", mcu);
     @printf("%-8s %d\n", "mc:", mc);
-    @printf("rpar: ", rpar);
+  #  println("rpar: ", rpar);
     @printf("\n");
-    @printf("ipar: ", ipar);
+  #  println("ipar: ", ipar);
     @printf("\n");
   end
 
@@ -120,7 +120,7 @@ function lmbmb(optFun::Function,x::Array{Float64};na::Int=2,mcu::Int=15,printinf
 #         iout, &maxtime, rtim, w)
 
 #  CALL BOUNDS(N,IB,XL,XU,NEXT)
-CALL LMBMBI(N,NA,MC,MCU,NW,X,XL,XU,F,IB,IACT,IPAR,IOUT,RPAR,TIME,RTIM,W)
+#CALL LMBMBI(N,NA,MC,MCU,NW,X,XL,XU,F,IB,IACT,IPAR,IOUT,RPAR,TIME,RTIM,W)
 ccall((:lmbmbi_,liblmbmb),Void,(
     Ptr{Cint}, # n --- number of variables
     Ptr{Cint}, # na --- Maximum bundle dimension
