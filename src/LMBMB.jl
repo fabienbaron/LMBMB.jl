@@ -67,12 +67,42 @@ Integer parameters in the int array of length 7
                                    additional bundle is needed, NA may be set to zero).
                                    If IPAR(I) <= 0 the default value of the parameter will be used.
 """
-function lmbmb(optFun::Function,x::Array{Float64};na::Int=2,mcu::Int=15,printinfo::Bool=false,maxtime::Float64=1800.0)
+function lmbmb(optFun::Function,x::Array{Float64}; xl::Array{Float64}, xu::Array{Float64};na::Int=2,mcu::Int=15,printinfo::Bool=false,maxtime::Float64=1800.0)
 
   const fOptPtr = cfunction(optFun,Cdouble,(Cint,Ptr{Cdouble}, Ptr{Cdouble}))
   ccall((:set_obj_func,liblmbmb),Void,(Ptr{Void},),fOptPtr)
 
-# set bounds here
+# test & set bounds here
+if isdefined(:xu)
+  if(length(x) == length(xu))
+    lowbound = true;
+  else
+    lowbound = false;
+  end
+end
+
+if isdefined(:xl)
+  if(length(x) == length(xl))
+    highbound = true;
+  else
+    highbound = false;
+  end
+end
+
+if (lowbound = true)
+  if (highbond = true)
+    ib = 2*ones(length(x));
+  else
+    ib = ones(length(x));
+  end
+elseif (highbond = true)
+      ib = 3*ones(length(x));
+    else
+    ib = zeros(length(x));
+  end
+end
+
+
   ipar=convert(Array{Cint},[0,5000000,5000000,0,1,0,1])
   rpar=convert(Array{Cdouble},[0,1e3,0 , 1e-05, 1e6, 0.5, 0.0001,1.5])
   maxtime = convert(Cfloat,maxtime);
