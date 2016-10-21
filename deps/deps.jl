@@ -4,4 +4,4 @@ macro checked_lib(libname, path)
 Please re-run Pkg.build(package), and restart Julia.")
     quote const $(esc(libname)) = $path end
 end
-@checked_lib liblmbm "/Users/tpevny/.julia/v0.4/LMBM/deps/liblmbm.so"
+@checked_lib liblmbmb "~/.julia/v0.5/LMBMB/deps/liblmbmb.so"
