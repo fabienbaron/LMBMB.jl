@@ -67,91 +67,55 @@ Integer parameters in the int array of length 7
                                    additional bundle is needed, NA may be set to zero).
                                    If IPAR(I) <= 0 the default value of the parameter will be used.
 """
-function lmbmb(optFun::Function,x::Array{Float64}; xl::Array{Float64}, xu::Array{Float64},na::Int=2,mcu::Int=15,printinfo::Bool=false,maxtime::Float64=1800.0)
+function lmbmb(optFun::Function,x::Array{Float64}, xl::Array{Float64}, xu::Array{Float64};na::Int=2,mcu::Int=15,printinfo::Bool=true,maxtime::Float64=1800.0)
 
   const fOptPtr = cfunction(optFun,Cdouble,(Cint,Ptr{Cdouble}, Ptr{Cdouble}))
-  ccall((:set_obj_func,liblmbmb),Void,(Ptr{Void},),fOptPtr)
+    ccall((:set_obj_func,liblmbmb),Void,(Ptr{Void},),fOptPtr)
 
-# test & set bounds here
-if isdefined(:xu)
-  if(length(x) == length(xu))
-    lowbound = true;
-  else
-    lowbound = false;
-  end
-end
-
-if isdefined(:xl)
-  if(length(x) == length(xl))
-    highbound = true;
-  else
-    highbound = false;
-  end
-end
-
-if (lowbound = true)
-  if (highbond = true)
-    ib = 2*ones(length(x));
-  else
-    ib = ones(length(x));
-  end
-elseif (highbond = true)
-      ib = 3*ones(length(x));
+    # test & set bounds here
+    if (length(x) == length(xu))
+      if (length(x) == length(xl))
+        ib = 2*ones(Cint, length(x));
+      else
+        ib = ones(Cint, length(x));
+      end
+    elseif (length(x) == length(xl))
+      ib = 3*ones(Cint, length(x));
     else
-    ib = zeros(length(x));
-  end
-end
+      ib = zeros(Cint, length(x));
+    end
+    iact = ones(Cint, length(x));
 
+    ipar=convert(Array{Cint},[0,5000000,5000000,0,1,0,1])
+    rpar=convert(Array{Cdouble},[0,1e3,0 , 1e-05, 1e6, 0.5, 0.0001,1.5])
+    maxtime = convert(Cfloat,maxtime);
+    rtim=zeros(Cfloat,2)
+    iout=zeros(Cint,4)
+    n=convert(Cint,length(x));
+    na =convert(Cint,na);
+    mcu =convert(Cint,mcu);
+    mc =convert(Cint,7);
+    nw =convert(Cint,1 + 13*n + 2*n*na + 3*na + 2*n*mcu + 5*mcu*(mcu+1)/2 + 13*mcu + (2*mcu+1)*mcu);
+    w=zeros(Cdouble,nw);
+    fVal=zeros(Cdouble,1);
 
-  ipar=convert(Array{Cint},[0,5000000,5000000,0,1,0,1])
-  rpar=convert(Array{Cdouble},[0,1e3,0 , 1e-05, 1e6, 0.5, 0.0001,1.5])
-  maxtime = convert(Cfloat,maxtime);
-  rtim=zeros(Cfloat,2)
-  iout=zeros(Cint,4)
-  n=convert(Cint,length(x));
-  na =convert(Cint,na);
-  mcu =convert(Cint,mcu);
-  mc =convert(Cint,7);
-  nw =convert(Cint,1 + 13*n + 2*n*na + 3*na + 2*n*mcu + 5*mcu*(mcu+1)/2 + 13*mcu + (2*mcu+1)*mcu);
-  w=zeros(Cdouble,nw);
-  fVal=zeros(Cdouble,1);
+    if printinfo
+      @printf("---------------\n");
+      @printf("| Parameters: |\n");
+      @printf("---------------\n");
+      @printf("%-8s %d\n", "n:", n);
+      @printf("%-8s %f\n", "maxtime:", maxtime);
+      @printf("%-8s %d\n", "na:", na);
+      @printf("%-8s %d\n", "mcu:", mcu);
+      @printf("%-8s %d\n", "mc:", mc);
+      #  println("rpar: ", rpar);
+      @printf("\n");
+      #  println("ipar: ", ipar);
+      @printf("\n");
+    end
 
-  if printinfo
-    @printf("---------------\n");
-    @printf("| Parameters: |\n");
-    @printf("---------------\n");
-    @printf("%-8s %d\n", "n:", n);
-    @printf("%-8s %f\n", "maxtime:", maxtime);
-    @printf("%-8s %d\n", "na:", na);
-    @printf("%-8s %d\n", "mcu:", mcu);
-    @printf("%-8s %d\n", "mc:", mc);
-  #  println("rpar: ", rpar);
-    @printf("\n");
-  #  println("ipar: ", ipar);
-    @printf("\n");
-  end
-
-  #CALL LMBMU(N,NA,MCU,MC,NW,X,F,RPAR,IPAR,IOUT,TIME,RTIM,W)
-#  ccall((:lmbmu_,liblmbm),Void,(
-#      Ptr{Cint}, # n --- number of variables
-#      Ptr{Cint}, # na --- Maximum bundle dimension
-#      Ptr{Cint}, # mcu --- Upper limit for maximum number of stored
-#      Ptr{Cint}, # mc --- Upper limit for maximum number of stored
-#      Ptr{Cint}, # nw --- length of the vector n
-#      Ptr{Cdouble},# x --- initial solution
-#      Ptr{Cdouble}, # f --- return optimized value, which we cannot read
-#      Ptr{Cdouble}, # rpar --- real value parameters,
-#      Ptr{Cint}, # ipar --- integer value parameters
-#      Ptr{Cint}, # iout --- integer output parameters
-#      Ptr{Cfloat}, # maxtime --- maximum execution time
-#      Ptr{Cfloat}, # rtime --- returned timings
-#      Ptr{Cdouble}), # w --- working vector timings
-#      &n, &na, &mcu, &mc, &nw, x,fVal, rpar, ipar,
-#         iout, &maxtime, rtim, w)
-
-#  CALL BOUNDS(N,IB,XL,XU,NEXT)
-#CALL LMBMBI(N,NA,MC,MCU,NW,X,XL,XU,F,IB,IACT,IPAR,IOUT,RPAR,TIME,RTIM,W)
-ccall((:lmbmbi_,liblmbmb),Void,(
+    #CALL LMBMBI(N,NA,MC,MCU,NW,X,XL,XU,F,IB,IACT,IPAR,IOUT,RPAR,TIME,RTIM,W)
+    ccall((:lmbmbi_,liblmbmb),Void,(
     Ptr{Cint}, # n --- number of variables
     Ptr{Cint}, # na --- Maximum bundle dimension
     Ptr{Cint}, # mcu --- Upper limit for maximum number of stored
@@ -162,7 +126,7 @@ ccall((:lmbmbi_,liblmbmb),Void,(
     Ptr{Cdouble},# xu --- upper bounds
     Ptr{Cdouble}, # f --- return optimized value, which we cannot read
     Ptr{Cint}, # ib --- Type of bound constraints
-    Prt{Cint}, # iact --- Index set of active and free variables
+    Ptr{Cint}, # iact --- Index set of active and free variables
     Ptr{Cint}, # ipar --- integer value parameters
     Ptr{Cint}, # iout --- integer output parameters
     Ptr{Cdouble}, # rpar --- real value parameters,
@@ -170,17 +134,17 @@ ccall((:lmbmbi_,liblmbmb),Void,(
     Ptr{Cfloat}, # rtime --- returned timings
     Ptr{Cdouble}), # w --- working vector timings
     &n, &na, &mcu, &mc, &nw, x, xl, xu, fVal, ib, iact, ipar,
-       iout, rpar, &maxtime, rtim, w)
+    iout, rpar, &maxtime, rtim, w)
 
-  if printinfo
-    @printf("-----------\n");
-    @printf("| Output: |\n");
-    @printf("-----------\n");
-    @printf("%-16s %d\n", "Termination:", iout[3]);
-    @printf("%-16s %d\n", "N. iter.:", iout[1]);
-    @printf("%-16s %d\n", "N. func. eval.:", iout[2]);
-    @printf("%-16s %f\n", "Final value:", fVal[1]);
-    @printf("%-16s %f\n", "Execution time:", rtim[1]);
+    if printinfo
+      @printf("-----------\n");
+      @printf("| Output: |\n");
+      @printf("-----------\n");
+      @printf("%-16s %d\n", "Termination:", iout[3]);
+      @printf("%-16s %d\n", "N. iter.:", iout[1]);
+      @printf("%-16s %d\n", "N. func. eval.:", iout[2]);
+      @printf("%-16s %f\n", "Final value:", fVal[1]);
+      @printf("%-16s %f\n", "Execution time:", rtim[1]);
+    end
   end
-end
 end

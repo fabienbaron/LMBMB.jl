@@ -83,17 +83,17 @@
 *
        SUBROUTINE FUNDER(N,X,F,G,ITERM)
 
- *     Scalar Arguments
+*     Scalar Arguments
        INTEGER N,ITERM
        DOUBLE PRECISION F
 
- *     Array Arguments
+*     Array Arguments
        DOUBLE PRECISION G(*),X(*)
 
 
- *
- *     Function and subgradient evaluation
- *
+*
+*     Function and subgradient evaluation
+*
 
        CALL objfunc(N, X, F, G)
 

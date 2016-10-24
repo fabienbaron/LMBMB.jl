@@ -2,8 +2,8 @@
 using LMBMB
 
 function testFun2(n::Cint,xp::Ptr{Cdouble},gp::Ptr{Cdouble})
-  x=pointer_to_array(xp,n,false);
-  g=pointer_to_array(gp,n,false);
+  x=unsafe_wrap(Array,xp,n,false);
+  g=unsafe_wrap(Array,gp,n,false);
 
   f = 0.0;
   g[1] = 0.0;
@@ -27,8 +27,8 @@ function testFun2(n::Cint,xp::Ptr{Cdouble},gp::Ptr{Cdouble})
 end
 
 function testFun1(n::Cint,xp::Ptr{Cdouble},gp::Ptr{Cdouble})
-  x=pointer_to_array(xp,n,false);
-  g=pointer_to_array(gp,n,false);
+  x=unsafe_wrap(Array, xp,n,false);
+  g=unsafe_wrap(Array, gp,n,false);
 
   f = 0;
   for j = 1:length(n)
@@ -39,8 +39,8 @@ function testFun1(n::Cint,xp::Ptr{Cdouble},gp::Ptr{Cdouble})
 end
 
 x=randn(100);
-LMBMB.lmbmb(testFun1,x;printinfo=true)
+LMBMB.lmbmb(testFun1,x, zeros(length(x)), 100.*ones(length(x));printinfo=true)
 println()
 println()
 x=randn(100);
-LMBMB.lmbmb(testFun2,x;printinfo=true)
+LMBMB.lmbmb(testFun2,x, zeros(length(x)), 100.*ones(length(x));printinfo=true)
